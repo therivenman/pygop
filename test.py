@@ -1,4 +1,5 @@
 from pygop import *
 
 pygop = pygop()
-pygop.setBulbLevel(216401854199230426, 1, 100)
+pygop.printRoomInfo()
+pygop.setBulbLevelByName('Right', 0, 0)
