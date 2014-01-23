@@ -2,7 +2,7 @@ import sys
 import urllib, urllib2
 import xml.etree.ElementTree as ET
 
-defaultGatewayName = 'lighting.local'
+defaultGatewayName = 'lighting'
 
 class pygop(object):
 	def __init__(self):
@@ -47,7 +47,7 @@ class pygop(object):
 
 	def __sendGopCommand(self, command, data):
 		url = 'http://' + defaultGatewayName + '/gwr/gop.php'
-		headers = { 'Host' : 'lighting.local',
+		headers = { 'Host' : defaultGatewayName,
 					'Content-Type': 'application/x-www-form-urlencoded'}
 
 		values = {'cmd' : command,
