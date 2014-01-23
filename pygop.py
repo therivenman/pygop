@@ -23,12 +23,16 @@ class pygop(object):
 
 		the_page = self.__sendCommand(command, data)
 
+		print the_page
+
 		tree = ET.fromstring(the_page)
 		for room in tree.findall('room'):
 			print 'Room: ' + room.find('name').text
 			for device in room.findall('device'):
 				print '     Name:' + device.find('name').text
 				print '      Did:' + device.find('did').text
+				if (device.find('offline') is not None):
+					print '      (Offline)'
 
 	def setBulbLevel(self, did, onoff, level):
 
