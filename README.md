@@ -16,3 +16,4 @@ A python module to interface with the GOP service from Greenwave Reality.
 - Better error checking
 - Blink mode to identify bulbs
 - Bulb renaming
+- Add more details in information screen (bulb status, dim level)
