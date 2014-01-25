@@ -6,7 +6,8 @@ defaultGatewayName = 'lighting'
 
 class pygop(object):
 	def __init__(self):
-		self.bulbList = {}
+		self.deviceList = {}
+		self.roomList = {}
 		self.token = 0
 
 		# connect to the gateway and get inital token
@@ -22,7 +23,7 @@ class pygop(object):
 
 	# API Functions
 
-	def printRoomInfo(self):
+	def printHouseInfo(self):
 		#get data for all rooms and print to the screen
 		self.__scanRooms(True)
 
@@ -41,9 +42,35 @@ class pygop(object):
 
 	def setBulbLevelByName(self, name, onoff, level):
 		# resolve name to did first
-		self.setBulbLevelByDid(self.__nameToDid(name), onoff, level)
+		bulbDid = self.__nameToDid(name)
 
-	## private helper functions
+		if (bulbDid is not None):
+			self.setBulbLevelByDid(bulbDid, onoff, level)
+		else:
+			print 'Device name does not exist'
+
+	def setRoomLevelByRid(self, rid, onoff, level):
+		command = 'RoomSendCommand'
+
+		if ((onoff == 0) and (level == 0)): 
+			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><value>0</value></gip>'
+		elif ((onoff != 0) and (level == 0)): 
+			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><value>1</value></gip>'
+		else:
+			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><type>level</type><val>' + str(level) + '</val></gip>'
+
+		self.__sendGopCommand(command, data)
+
+	def setRoomLevelByName(self, name, onoff, level):
+		# resolve name to did first
+		roomRid = self.__nameToRid(name)
+
+		if (roomRid is not None):
+			self.setRoomLevelByRid(roomRid, onoff, level)
+		else:
+			print 'Room name does not exist'
+
+	# private helper functions
 
 	def __sendGopCommand(self, command, data):
 		url = 'http://' + defaultGatewayName + '/gwr/gop.php'
@@ -68,25 +95,46 @@ class pygop(object):
 
 		tree = ET.fromstring(result)
 		for room in tree.findall('room'):
+			self.roomList[room.find('name').text] = room.find('rid').text
 			if (output):
 				print 'Room: ' + room.find('name').text
+				print ' Rid: ' + room.find('rid').text
 			for device in room.findall('device'):
-				self.bulbList[device.find('name').text] = device.find('did').text
+				self.deviceList[device.find('name').text] = device.find('did').text
 				if (output):
-					print '     Name:' + device.find('name').text
-					print '      Did:' + device.find('did').text
+					if (device.find('prodtype').text == "Light Fixture"):
+						print '     Light Fixture:'
+					elif (device.find('prodtype').text == "LED"):
+						print '     LED Bulb:'
+					elif (device.find('prodtype').text == "CFL"):
+						print '     CFL Bulb:'
+					else:
+						print '     Unknown Device Type:'
+					print '     Name: ' + device.find('name').text
+					print '      Did: ' + device.find('did').text
+					if (device.find('state').text == '1'):
+						print '    State: On'
+					else:
+						print '    State: Off'
+					print '    Level: ' +  device.find('level').text
 					if (device.find('offline') is not None):
 						print '     (Offline)'
+					print ''
 
 	def __nameToDid(self, name):
-		#first do a scan to populate bulbList
-		if(self.bulbList == {}):
+		#first do a scan to populate database
+		if(self.deviceList == {}):
 			self.__scanRooms(False)
 
-		#find did by name
-		did =  self.bulbList.get(name)
+		did =  self.deviceList.get(name)
 
-		if(did is not None):
-			return did
-		else:
-			sys.exit('That bulb name does not exist')
+		return did
+
+	def __nameToRid(self, name):
+		#first do a scan to populate database
+		if (self.roomList == {}):
+			self.__scanRooms(False)
+
+		rid = self.roomList.get(name)
+
+		return rid

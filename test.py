@@ -1,5 +1,5 @@
 from pygop import *
 
 pygop = pygop()
-pygop.printRoomInfo()
-pygop.setBulbLevelByName('Right', 0, 0)
+pygop.printHouseInfo()
+pygop.setRoomLevelByName('Front Room', 0, 0)
