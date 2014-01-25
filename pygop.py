@@ -3,6 +3,9 @@ import urllib, urllib2
 import xml.etree.ElementTree as ET
 
 defaultGatewayName = 'lighting'
+GOPReturnCodes = {	'200': 'Command Succesful',
+					'404': 'Invalid Command',
+					'500': 'Malformed XML Data'}
 
 class pygop(object):
 	def __init__(self):
@@ -17,9 +20,12 @@ class pygop(object):
 
 		result = self.__sendGopCommand(command, data)
 
-		tree = ET.fromstring(result)
-		for child in tree.iter('token'):
-			self.token = child.text
+		if (result is False):
+			sys.exit('Failed to get XML response.  Exiting')
+
+		self.token = self.__getXMLTagValue(result, 'token')
+		if (self.token is None):
+			sys.exit('Unable to get token.  Exiting')
 
 	# API Functions
 
@@ -38,14 +44,22 @@ class pygop(object):
 		else:
 			data = '<gip><version>1</version><token>' + self.token + '</token><did>' + str(did) + '</did><type>level</type><val>' + str(level) + '</val></gip>'
 
-		self.__sendGopCommand(command, data)
+		result = self.__sendGopCommand(command, data)
+
+		if(result is False):
+			print 'Failed to setBulbLevelByDid'
+
+		return result
 
 	def setBulbLevelByName(self, name, onoff, level):
 		# resolve name to did first
 		bulbDid = self.__nameToDid(name)
 
 		if (bulbDid is not None):
-			self.setBulbLevelByDid(bulbDid, onoff, level)
+			result = self.setBulbLevelByDid(bulbDid, onoff, level)
+
+			if(result is False):
+				print 'Failed to setBulbLevelByName'
 		else:
 			print 'Device name does not exist'
 
@@ -59,14 +73,21 @@ class pygop(object):
 		else:
 			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><type>level</type><val>' + str(level) + '</val></gip>'
 
-		self.__sendGopCommand(command, data)
+		result = self.__sendGopCommand(command, data)
+
+		if(result is False):
+			print 'Failed to setRoomLevelByRid'
+
+		return result
 
 	def setRoomLevelByName(self, name, onoff, level):
 		# resolve name to did first
 		roomRid = self.__nameToRid(name)
 
 		if (roomRid is not None):
-			self.setRoomLevelByRid(roomRid, onoff, level)
+			result = self.setRoomLevelByRid(roomRid, onoff, level)
+			if(result is False):
+				print 'Failed to setRoomLevelByName'
 		else:
 			print 'Room name does not exist'
 
@@ -83,9 +104,32 @@ class pygop(object):
 
 		data = urllib.urlencode(values)
 		req = urllib2.Request(url, data, headers)
-		response = urllib2.urlopen(req)
-		page_content = response.read()
-		return page_content
+
+		# handle any connection errors
+		try:
+			response = urllib2.urlopen(req)
+		except urllib2.URLError as e:
+			if hasattr(e, 'reason'):
+				print 'Failed to reach the lighting server. Check to make ' \
+				'sure you\'re connected to the same network as the gateway ' \
+				'and it\'s online.'
+				print 'Reason: ', e.reason
+			elif hasattr(e, 'code'):
+				print 'The server couldn\'t fulfill the request.'
+				print 'Error code: ', e.code
+
+			return False
+		else:
+			result = response.read()
+
+			# Print GOP Error if there is one
+			rc = self.__getXMLTagValue(result, 'rc')
+			if (rc is not None):
+				if (rc != '200'):
+					print rc + ': ' + GOPReturnCodes[rc]
+					return False
+
+			return result
 
 	def __scanRooms(self, output):
 		command = 'RoomGetCarousel'
@@ -138,3 +182,13 @@ class pygop(object):
 		rid = self.roomList.get(name)
 
 		return rid
+
+	def __getXMLTagValue(self, xml, tag):
+		tree = ET.fromstring(xml)
+		value = tree.find(tag)
+
+		if (value is not None):
+			return value.text
+		else:
+			return None
+
