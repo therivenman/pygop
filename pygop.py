@@ -30,11 +30,13 @@ class pygop(object):
 	# API Functions
 
 	def printHouseInfo(self):
-		#get data for all rooms and print to the screen
+		'Gets data for all rooms and prints it to the screen'
 		self.__scanRooms(True)
 
 
 	def setBulbLevelByDid(self, did, onoff, level):
+		'Sets the bulb on/off or dim level. [did, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Note: To set the bulb on or off, the level parameter must be 0.'
 		command = 'DeviceSendCommand'
 
 		if ((onoff == 0) and (level == 0)): 
@@ -52,6 +54,8 @@ class pygop(object):
 		return result
 
 	def setBulbLevelByName(self, name, onoff, level):
+		'Sets the bulb on/off or dim level. [name, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Note: To set the bulb on or off, the level parameter must be 0.'
 		# resolve name to did first
 		bulbDid = self.__nameToDid(name)
 
@@ -64,6 +68,8 @@ class pygop(object):
 			print 'Device name does not exist'
 
 	def setRoomLevelByRid(self, rid, onoff, level):
+		'Sets the room on/off or dim level. [rid, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Note: To set the room on or off, the level parameter must be 0.'
 		command = 'RoomSendCommand'
 
 		if ((onoff == 0) and (level == 0)): 
@@ -81,6 +87,8 @@ class pygop(object):
 		return result
 
 	def setRoomLevelByName(self, name, onoff, level):
+		'Sets the room on/off or dim level. [name, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Note: To set the room on or off, the level parameter must be 0.'
 		# resolve name to did first
 		roomRid = self.__nameToRid(name)
 
