@@ -1,6 +1,6 @@
-from pygop import pygop
+import pygop
 
-pygop = pygop()
+pygop = pygop.pygop()
 pygop.printHouseInfo()
 
 # pygop.setBulbLevelByDid(216401854199230426, 1, 0)

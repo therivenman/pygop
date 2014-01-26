@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from pygop import pygop
+import pygop
 from optparse import OptionParser
 import sys
 
@@ -15,7 +15,7 @@ def logLevel(name, level):
 # set up parser and options
 usage = "%prog [-p]"
 description = "Command Line Utility for the pygop module"
-version = "%prog 0.1"
+version = "%prog " + pygop.__version__
 parser = OptionParser(usage=usage, description=description, version=version)
 parser.add_option("-p", "--print-info", action="store_true", default=False,
 			dest="printInfo", help="Print rooms and devices to the console")
@@ -64,7 +64,7 @@ if (options.name and (options.onoff == -1) and (options.level == -1)):
 if (options.rname and (options.onoff == -1) and (options.level == -1)):
 	parser.error('Please choose an action (set,level)')
 
-pygop = pygop()
+pygop = pygop.pygop()
 
 if (options.printInfo):
 	pygop.printHouseInfo()

@@ -2,6 +2,8 @@ import sys
 import urllib, urllib2
 import xml.etree.ElementTree as ET
 
+__version__ = "0.0.1"
+
 defaultGatewayName = 'lighting'
 GOPReturnCodes = {	'200': 'Command Succesful',
 					'404': 'Invalid Command',
