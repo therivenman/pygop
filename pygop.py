@@ -154,15 +154,20 @@ class pygop(object):
 						print '     CFL Bulb:'
 					else:
 						print '     Unknown Device Type:'
+
 					print '     Name: ' + device.find('name').text
+
 					print '      Did: ' + device.find('did').text
+
 					if (device.find('state').text == '1'):
 						print '    State: On'
 					else:
 						print '    State: Off'
-					print '    Level: ' +  device.find('level').text
+
 					if (device.find('offline') is not None):
 						print '     (Offline)'
+					else:
+						print '    Level: ' +  device.find('level').text
 					print ''
 
 	def __nameToDid(self, name):
