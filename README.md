@@ -10,9 +10,9 @@ A python module to interface with the GOP service from Greenwave Reality.
 - Set bulb/fixture on/off and dim level by did or bulb/fixture name
 - Set room on/off and dim level by rid or room name
 - Robust error checking and easy to read error messages
+- Command line utitlity to access all API features
 
 ### Future Features
 
-- Command line utitlity to access all API features
 - Blink mode to identify bulbs
 - Bulb renaming
