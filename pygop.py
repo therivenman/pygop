@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 defaultGatewayName = 'lighting'
 GOPReturnCodes = {	'200': 'Command Succesful',
 					'404': 'Invalid Command',
-					'500': 'Malformed XML Data'}
+					'500': 'Incorrect Did/Rid'}
 
 class pygop(object):
 	def __init__(self):
@@ -35,7 +35,7 @@ class pygop(object):
 
 
 	def setBulbLevelByDid(self, did, onoff, level):
-		'Sets the bulb on/off or dim level. [did, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Sets the bulb on/off or dim level. [did, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the bulb on or off, the level parameter must be 0.'
 		command = 'DeviceSendCommand'
 
@@ -50,11 +50,12 @@ class pygop(object):
 
 		if(result is False):
 			print 'Failed to setBulbLevelByDid'
+			return False
 
-		return result
+		return True
 
 	def setBulbLevelByName(self, name, onoff, level):
-		'Sets the bulb on/off or dim level. [name, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Sets the bulb on/off or dim level. [name, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the bulb on or off, the level parameter must be 0.'
 		# resolve name to did first
 		bulbDid = self.__nameToDid(name)
@@ -64,11 +65,15 @@ class pygop(object):
 
 			if(result is False):
 				print 'Failed to setBulbLevelByName'
+				return False
 		else:
 			print 'Device name does not exist'
+			return False
+
+		return True
 
 	def setRoomLevelByRid(self, rid, onoff, level):
-		'Sets the room on/off or dim level. [rid, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Sets the room on/off or dim level. [rid, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the room on or off, the level parameter must be 0.'
 		command = 'RoomSendCommand'
 
@@ -83,11 +88,12 @@ class pygop(object):
 
 		if(result is False):
 			print 'Failed to setRoomLevelByRid'
+			return False
 
-		return result
+		return True
 
 	def setRoomLevelByName(self, name, onoff, level):
-		'Sets the room on/off or dim level. [name, (1 - on, 0 off), dim level (0-100)]\n' \
+		'Sets the room on/off or dim level. [name, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the room on or off, the level parameter must be 0.'
 		# resolve name to did first
 		roomRid = self.__nameToRid(name)
@@ -96,8 +102,12 @@ class pygop(object):
 			result = self.setRoomLevelByRid(roomRid, onoff, level)
 			if(result is False):
 				print 'Failed to setRoomLevelByName'
+				return False
 		else:
 			print 'Room name does not exist'
+			return False
+
+		return True
 
 	# private helper functions
 
