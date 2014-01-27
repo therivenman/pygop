@@ -4,19 +4,23 @@ from optparse import OptionParser
 import sys
 
 def logOnOff(name, onoff):
-	if (onoff == 1):
-		print 'Turning \'' + str(name) + '\' on.'
-	else:
-		print 'Turning \'' + str(name) + '\' off.'
+	if (options.quiet is False):
+		if (onoff == 1):
+			print 'Turning \'' + str(name) + '\' on.'
+		else:
+			print 'Turning \'' + str(name) + '\' off.'
 
 def logLevel(name, level):
-	print 'Setting dim level ' + str(level) + ' on \'' + str(name) + '\'.'
+	if (options.quiet is False):
+		print 'Setting dim level ' + str(level) + ' on \'' + str(name) + '\'.'
 
 # set up parser and options
 usage = "%prog [-p]"
 description = "Command Line Utility for the pygop module"
 version = "%prog " + pygop.__version__
 parser = OptionParser(usage=usage, description=description, version=version)
+parser.add_option("-q", "--quiet", action="store_true", default=False,
+			dest="quiet", help="Surpress program output")
 parser.add_option("-p", "--print-info", action="store_true", default=False,
 			dest="printInfo", help="Print rooms and devices to the console")
 parser.add_option("-s", "--set", action="store", type="int", dest="onoff",
