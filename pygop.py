@@ -149,7 +149,7 @@ class pygop(object):
         return True
 
     def identifyRoomByName(self, name):
-        'Identifies a room by dimming the bulbs in it. [did]'
+        'Identifies a room by dimming the bulbs in it. [name]'
 
         result = self.__identify(self.identifyRoomByName, name)
         if(result is False):
