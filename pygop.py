@@ -1,10 +1,11 @@
 import sys
 import urllib, urllib2
 import xml.etree.ElementTree as ET
+from time import sleep
 
 __version__ = "0.0.1"
 
-defaultGatewayName = 'lighting'
+defaultGatewayName = 'lighting.local'
 GOPReturnCodes = {	'200': 'Command Succesful',
 					'404': 'Invalid Command',
 					'500': 'Incorrect Did/Rid'}
@@ -15,7 +16,7 @@ class pygop(object):
 		self.roomList = {}
 		self.token = 0
 
-		# connect to the gateway and get inital token
+		# connect to the gateway and get initial token
 
 		command = 'GWRLogin'
 		data = '<gip><version>1</version><email>admin</email><password>admin</password></gip>'
@@ -35,18 +36,17 @@ class pygop(object):
 		'Gets data for all rooms and prints it to the screen'
 		self.__scanRooms(True)
 
+	# Set Level APIs
 
-	def setBulbLevelByDid(self, did, onoff, level):
+	def setBulbLevelByDid(self, did, onoff, level=0):
 		'Sets the bulb on/off or dim level. [did, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the bulb on or off, the level parameter must be 0.'
 		command = 'DeviceSendCommand'
 
-		if ((onoff == 0) and (level == 0)): 
-			data = '<gip><version>1</version><token>' + self.token + '</token><did>' + str(did) + '</did><value>0</value></gip>'
-		elif ((onoff != 0) and (level == 0)): 
-			data = '<gip><version>1</version><token>' + self.token + '</token><did>' + str(did) + '</did><value>1</value></gip>'
+		if (level == 0):
+			data = '<gip><version>1</version><token>%s</token><did>%s</did><value>%d</value></gip>' % (self.token, did, onoff)
 		else:
-			data = '<gip><version>1</version><token>' + self.token + '</token><did>' + str(did) + '</did><type>level</type><val>' + str(level) + '</val></gip>'
+			data = '<gip><version>1</version><token>%s</token><did>%s</did><type>level</type><value>%d</value></gip>' % (self.token, did, level)
 
 		result = self.__sendGopCommand(command, data)
 
@@ -56,7 +56,7 @@ class pygop(object):
 
 		return True
 
-	def setBulbLevelByName(self, name, onoff, level):
+	def setBulbLevelByName(self, name, onoff, level=0):
 		'Sets the bulb on/off or dim level. [name, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the bulb on or off, the level parameter must be 0.'
 		# resolve name to did first
@@ -74,17 +74,15 @@ class pygop(object):
 
 		return True
 
-	def setRoomLevelByRid(self, rid, onoff, level):
+	def setRoomLevelByRid(self, rid, onoff, level=0):
 		'Sets the room on/off or dim level. [rid, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the room on or off, the level parameter must be 0.'
 		command = 'RoomSendCommand'
 
-		if ((onoff == 0) and (level == 0)): 
-			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><value>0</value></gip>'
-		elif ((onoff != 0) and (level == 0)): 
-			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><value>1</value></gip>'
+		if (level == 0):
+			data = '<gip><version>1</version><token>%s</token><rid>%s</rid><value>%d</value></gip>' % (self.token, rid, onoff)
 		else:
-			data = '<gip><version>1</version><token>' + self.token + '</token><rid>' + str(rid) + '</rid><type>level</type><val>' + str(level) + '</val></gip>'
+			data = '<gip><version>1</version><token>%s</token><rid>%s</rid><type>level</type><value>%d</value></gip>' % (self.token, rid, level)
 
 		result = self.__sendGopCommand(command, data)
 
@@ -94,7 +92,7 @@ class pygop(object):
 
 		return True
 
-	def setRoomLevelByName(self, name, onoff, level):
+	def setRoomLevelByName(self, name, onoff, level=0):
 		'Sets the room on/off or dim level. [name, (1 - on, 0 off), dim level (1-100)]\n' \
 		'Note: To set the room on or off, the level parameter must be 0.'
 		# resolve name to did first
@@ -111,7 +109,68 @@ class pygop(object):
 
 		return True
 
+	# Identify APIs
+
+	def identifyBulbByDid(self, did):
+		'Identifies a bulb by dimming it. [did]'
+
+		result = self.__identify(self.setBulbLevelByDid, did)
+		if(result is False):
+			print 'Failed to identifyBulbByDid'
+			return False
+
+		return True
+
+	def identifyBulbByName(self, name):
+		'Identifies a bulb by dimming it. [name]'
+
+		result = self.__identify(self.setBulbLevelByName, name)
+		if(result is False):
+			print 'Failed to identifyBulbByName'
+			return False
+
+		return True
+
+	def identifyRoomByRid(self, rid):
+		'Identifies a room by dimming the bulbs in it. [rid]'
+
+		result = self.__identify(self.identifyRoomByRid, rid)
+		if(result is False):
+			print 'Failed to identifyRoomByRid'
+			return False
+
+		return True
+
+	def identifyRoomByName(self, name):
+		'Identifies a room by dimming the bulbs in it. [did]'
+
+		result = self.__identify(self.identifyRoomByName, name)
+		if(result is False):
+			print 'Failed to identifyRoomByName'
+			return False
+
+		return True
+
 	# private helper functions
+
+	def __identify(self, action, identifier):
+
+		# turn the target on
+		result = action(identifier, 1)
+		if(result is False):
+			print 'Failed to identify %s' % identifier
+			return False
+
+		# dim between 50 and 70 percent a few times
+		for level in range(1,7):
+			result = action(identifier, 1, 50 + level%2 * 20)
+			if(result is False):
+				print 'Failed to identify %s' % identifier
+				return False
+
+			sleep(75.0/1000)
+
+		return True
 
 	def __sendGopCommand(self, command, data):
 		url = 'http://' + defaultGatewayName + '/gwr/gop.php'
@@ -195,7 +254,7 @@ class pygop(object):
 		if(self.deviceList == {}):
 			self.__scanRooms(False)
 
-		did =  self.deviceList.get(name)
+		did = self.deviceList.get(name)
 
 		return did
 
