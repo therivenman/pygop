@@ -1,112 +1,120 @@
 #!/usr/bin/python
 import pygop
-from optparse import OptionParser
+from argparse import ArgumentParser
 import sys
 
 def logOnOff(name, onoff):
-	if (options.quiet is False):
-		if (onoff == 1):
-			print 'Turning \'' + str(name) + '\' on.'
-		else:
-			print 'Turning \'' + str(name) + '\' off.'
+    if (args.quiet is False):
+        if (onoff == 1):
+            print "Turning %s on" % name
+        else:
+            print "Turning %s off" % name
 
 def logLevel(name, level):
-	if (options.quiet is False):
-		print 'Setting dim level ' + str(level) + ' on \'' + str(name) + '\'.'
+    if (args.quiet is False):
+        print "Setting dim level %s on '%s'." % (level, name)
 
-# set up parser and options
-usage = "%prog [-p]"
+def logIdentify(name):
+    if (args.quiet is False):
+        print 'Identifying %s' % name
+
+# set up parser and args
+# %prog variable doesn't work with the parser in usage for some reason
+usage = "%s [-p]" % sys.argv[0] 
 description = "Command Line Utility for the pygop module"
-version = "%prog " + pygop.__version__
-parser = OptionParser(usage=usage, description=description, version=version)
-parser.add_option("-q", "--quiet", action="store_true", default=False,
-			dest="quiet", help="Surpress program output")
-parser.add_option("-p", "--print-info", action="store_true", default=False,
-			dest="printInfo", help="Print rooms and devices to the console")
-parser.add_option("-s", "--set", action="store", type="int", dest="onoff",
-			help="Set the bulb/fixture on - 1 or off - 0", default=-1)
-parser.add_option("-l", "--level", action="store", type="int", dest="level",
-			help="Set the dim level of the bulb/fixture (1-100)", default=-1)
-parser.add_option("-d", "--did", action="store", type="int", dest="did",
-			help="Specify the did (device identifier)")
-parser.add_option("-r", "--rid", action="store", type="int", dest="rid",
-			help="Specify the rid (room identifier)")
-parser.add_option("-n", "--name", action="store", type="string", dest="name",
-			help="Specify the name of the bulb/fixture")
-parser.add_option("-m", "--rname", action="store", type="string", dest="rname",
-			help="Specify the name of the room")
+version = "%s %s" % (sys.argv[0], pygop.__version__)
+parser = ArgumentParser(usage=usage, description=description)
+
+parser.add_argument("-v", "--version", action="version", version=version)
+parser.add_argument("-q", "--quiet", action="store_true", default=False,
+            dest="quiet", help="Surpress program output")
+parser.add_argument("-p", "--print-info", action="store_true", default=False,
+            dest="printInfo", help="Print rooms and devices to the console")
+parser.add_argument("-g", "--gatewayName", action="store", default=None,
+            dest="gatewayName", help="Override the gateway's domain name")
+
+
+action_group = parser.add_mutually_exclusive_group()
+action_group.add_argument("-s", "--set", action="store", type=int, dest="onoff", 
+            help="Set the bulb/fixture on - 1 or off - 0", default=-1)
+action_group.add_argument("-i", "--identify", action="store_true", default=False, dest="identify", 
+            help="Identifies a room or bulb ID or name")
+action_group.add_argument("-l", "--level", action="store", type=int, dest="level",
+            help="Set the dim level of the bulb/fixture (1-100)", default=-1)
+
+identifier_group = parser.add_mutually_exclusive_group()
+identifier_group.add_argument("-d", "--did", action="store", type=int, dest="did",
+            help="Specify the did (device identifier)", default=-1)
+identifier_group.add_argument("-r", "--rid", action="store", type=int, dest="rid",
+            help="Specify the rid (room identifier)", default=-1)
+identifier_group.add_argument("-n", "--name", action="store", type=str, dest="name",
+            help="Specify the name of the bulb/fixture", default=None)
+identifier_group.add_argument("-m", "--rname", action="store", type=str, dest="rname",
+            help="Specify the name of the room", default=None)
 
 # parse arguments
-(options, args) = parser.parse_args()
+args = parser.parse_args()
 
-# if no arguments print usage
-if ((options.printInfo is False) and (options.onoff == -1) 
-	and (options.level == -1) and (options.did is None) and (options.rid is None)
-	and (options.name is None) and (options.rname is None)):
-	parser.print_help()
-	sys.exit()
+# # if no arguments print usage
+if (len(sys.argv) < 2):
+     parser.print_help()
+     sys.exit()
 
-if(options.did and options.rid):
-	parser.error('Please choose only one (did,rid)')
-if(options.did and options.name):
-	parser.error('Please choose only one (did,name)')
-if(options.did and options.rname):
-	parser.error('Please choose only one (did,rname)')
-if(options.rid and options.name):
-	parser.error('Please choose only one (rid,name)')
-if(options.rid and options.rname):
-	parser.error('Please choose only one (rid,rname)')
-if(options.name and options.rname):
-	parser.error('Please choose only one (name,rname)')
+pygop = pygop.pygop(args.gatewayName)
 
-if (options.did and (options.onoff == -1) and (options.level == -1)):
-	parser.error('Please choose an action (set,level)')
-if (options.rid and (options.onoff == -1) and (options.level == -1)):
-	parser.error('Please choose an action (set,level)')
-if (options.name and (options.onoff == -1) and (options.level == -1)):
-	parser.error('Please choose an action (set,level)')
-if (options.rname and (options.onoff == -1) and (options.level == -1)):
-	parser.error('Please choose an action (set,level)')
+if (args.printInfo):
+    pygop.printHouseInfo()
 
-pygop = pygop.pygop()
-
-if (options.printInfo):
-	pygop.printHouseInfo()
-
-if (options.onoff != -1):
-	if (options.onoff < 0 or options.onoff > 1):
-		parser.error("Set value out of bounds (0 or 1)")
-	else:
-		if (options.did):
-			if (pygop.setBulbLevelByDid(options.did, options.onoff, 0)):
-				logOnOff(options.did, options.onoff)
-		elif (options.rid):
-			if (pygop.setRoomLevelByRid(options.rid, options.onoff, 0)):
-				logOnOff(options.rid, options.onoff)
-		elif (options.name):
-			if (pygop.setBulbLevelByName(options.name, options.onoff, 0)):
-				logOnOff(options.name, options.onoff)
-		elif (options.rname):
-			if (pygop.setRoomLevelByName(options.rname, options.onoff, 0)):
-				logOnOff(options.rname, options.onoff)
-		else:
-			parser.error('Name or did required to set bulb/fixture on or off.')
-
-if (options.level != -1):
-	if(options.level < 1 or options.level > 100):
-		parser.error("Dim level out of bounds (1-100)")
-	else:
-		if (options.did):
-			if (pygop.setBulbLevelByDid(options.did, 0, options.level)):
-				logLevel(options.did, options.level)
-		elif (options.rid):
-			if (pygop.setRoomLevelByRid(options.rid, 0, options.level)):
-				logLevel(options.rid, options.level)
-		elif (options.name):
-			if (pygop.setBulbLevelByName(options.name, 0, options.level)):
-				logLevel(options.name, options.level)
-		elif (options.rname):
-			if (pygop.setRoomLevelByName(options.rname, 0, options.level)):
-				logLevel(options.rname, options.level)
-		else:
-			parser.error('Name or did required to set bulb/fixture dim level.')
+if (args.identify):
+    if (args.did):
+        if (pygop.identifyBulbByDid(args.did)):
+            logIdentify(args.did)
+    elif (args.name):
+        if (pygop.identifyBulbByName(args.name)):
+            logIdentify(args.name)
+    elif (args.rid):
+        if (pygop.identifyBulbByRid(args.rid)):
+            logIdentify(args.rid)
+    elif (args.rname):
+        if (pygop.identifyBulbByRname(args.rname)):
+            logIdentify(args.rname)
+    else:
+        parser.error('Name or did required to identify bulb/fixture')
+elif (args.onoff != -1):
+    if (args.onoff < 0 or args.onoff > 1):
+        parser.error("Set value out of bounds (0 or 1)")
+    else:
+        if (args.did):
+            if (pygop.setBulbLevelByDid(args.did, args.onoff)):
+                logOnOff(args.did, args.onoff)
+        elif (args.rid):
+            if (pygop.setRoomLevelByRid(args.rid, args.onoff)):
+                logOnOff(args.rid, args.onoff)
+        elif (args.name):
+            if (pygop.setBulbLevelByName(args.name, args.onoff)):
+                logOnOff(args.name, args.onoff)
+        elif (args.rname):
+            if (pygop.setRoomLevelByName(args.rname, args.onoff)):
+                logOnOff(args.rname, args.onoff)
+        else:
+            parser.error('Name or did required to set bulb/fixture on or off.')
+elif (args.level != -1):
+    if(args.level < 1 or args.level > 100):
+        parser.error("Dim level out of bounds (1-100)")
+    else:
+        if (args.did):
+            if (pygop.setBulbLevelByDid(args.did, 0, args.level)):
+                logLevel(args.did, args.level)
+        elif (args.rid):
+            if (pygop.setRoomLevelByRid(args.rid, 0, args.level)):
+                logLevel(args.rid, args.level)
+        elif (args.name):
+            if (pygop.setBulbLevelByName(args.name, 0, args.level)):
+                logLevel(args.name, args.level)
+        elif (args.rname):
+            if (pygop.setRoomLevelByName(args.rname, 0, args.level)):
+                logLevel(args.rname, args.level)
+        else:
+            parser.error('Name or did required to set bulb/fixture dim level.')
+else:
+    parser.error("Please choose an action (set,level,identify)")
