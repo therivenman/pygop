@@ -25,8 +25,4 @@ A python module to interface with the GOP service from Greenwave Reality.
 - Improve performance
 - Robustify
 - Add tests
-
-### Reach goals
-- Twitter command and control
-- Support for "local" rooms and bulb names
 - Scenes
