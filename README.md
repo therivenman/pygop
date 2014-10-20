@@ -16,9 +16,17 @@ A python module to interface with the GOP service from Greenwave Reality.
 - Robust error checking and easy to read error messages
 - Command line utility to access all API features
 
-### Future Features / Work
+### Future Features and Work
 
-- Room renaming
-- Bulb renaming
+- Interactive identification mode
+- Add/remove bulb to room
+- Toggle/dim everything at once
+- Room/bulb renaming
 - Improve performance
+- Robustify
 - Add tests
+
+### Reach goals
+- Twitter command and control
+- Support for "local" rooms and bulb names
+- Scenes
