@@ -3,6 +3,9 @@ pygop
 
 A python module to interface with the GOP service from Greenwave Reality.
 
+### New Features
+- Blink mode to identify bulbs and rooms
+
 ### Current Features
 
 - Get information about your rooms and bulbs
@@ -14,5 +17,4 @@ A python module to interface with the GOP service from Greenwave Reality.
 
 ### Future Features
 
-- Blink mode to identify bulbs
 - Bulb renaming
