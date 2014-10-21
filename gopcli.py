@@ -33,14 +33,13 @@ parser.add_argument("-p", "--print-info", action="store_true", default=False,
 parser.add_argument("-g", "--gatewayName", action="store", default=None,
             dest="gatewayName", help="Override the gateway's domain name")
 
-
 action_group = parser.add_mutually_exclusive_group()
 action_group.add_argument("-s", "--set", action="store", type=int, dest="onoff", 
-            help="Set the bulb/fixture on - 1 or off - 0", default=-1)
+            help="Set the bulb/fixture on - 1 or off - 0", default=None)
+action_group.add_argument("-l", "--level", action="store", type=int, dest="level",
+            help="Set the dim level of the bulb/fixture (1-100)", default=None)
 action_group.add_argument("-i", "--identify", action="store_true", default=False, dest="identify", 
             help="Identifies a room or bulb ID or name")
-action_group.add_argument("-l", "--level", action="store", type=int, dest="level",
-            help="Set the dim level of the bulb/fixture (1-100)", default=-1)
 
 identifier_group = parser.add_mutually_exclusive_group()
 identifier_group.add_argument("-d", "--did", action="store", type=int, dest="did",
@@ -80,7 +79,7 @@ if (args.identify):
             logIdentify(args.rname)
     else:
         parser.error('Name or did required to identify bulb/fixture')
-elif (args.onoff != -1):
+elif (args.onoff):
     if (args.onoff < 0 or args.onoff > 1):
         parser.error("Set value out of bounds (0 or 1)")
     else:
@@ -98,7 +97,7 @@ elif (args.onoff != -1):
                 logOnOff(args.rname, args.onoff)
         else:
             parser.error('Name or did required to set bulb/fixture on or off.')
-elif (args.level != -1):
+elif (args.level):
     if(args.level < 1 or args.level > 100):
         parser.error("Dim level out of bounds (1-100)")
     else:
