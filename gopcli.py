@@ -44,9 +44,9 @@ action_group.add_argument("-l", "--level", action="store", type=int, dest="level
 
 identifier_group = parser.add_mutually_exclusive_group()
 identifier_group.add_argument("-d", "--did", action="store", type=int, dest="did",
-            help="Specify the did (device identifier)", default=-1)
+            help="Specify the did (device identifier)", default=None)
 identifier_group.add_argument("-r", "--rid", action="store", type=int, dest="rid",
-            help="Specify the rid (room identifier)", default=-1)
+            help="Specify the rid (room identifier)", default=None)
 identifier_group.add_argument("-n", "--name", action="store", type=str, dest="name",
             help="Specify the name of the bulb/fixture", default=None)
 identifier_group.add_argument("-m", "--rname", action="store", type=str, dest="rname",
@@ -66,13 +66,13 @@ if (args.printInfo):
     pygop.printHouseInfo()
 
 if (args.identify):
-    if (args.did > 0):
+    if (args.did):
         if (pygop.identifyBulbByDid(args.did)):
             logIdentify(args.did)
     elif (args.name):
         if (pygop.identifyBulbByName(args.name)):
             logIdentify(args.name)
-    elif (args.rid > 0):
+    elif (args.rid):
         if (pygop.identifyBulbByRid(args.rid)):
             logIdentify(args.rid)
     elif (args.rname):
@@ -84,10 +84,10 @@ elif (args.onoff != -1):
     if (args.onoff < 0 or args.onoff > 1):
         parser.error("Set value out of bounds (0 or 1)")
     else:
-        if (args.did > 0):
+        if (args.did):
             if (pygop.setBulbLevelByDid(args.did, args.onoff)):
                 logOnOff(args.did, args.onoff)
-        elif (args.rid > 0):
+        elif (args.rid):
             if (pygop.setRoomLevelByRid(args.rid, args.onoff)):
                 logOnOff(args.rid, args.onoff)
         elif (args.name):
@@ -102,10 +102,10 @@ elif (args.level != -1):
     if(args.level < 1 or args.level > 100):
         parser.error("Dim level out of bounds (1-100)")
     else:
-        if (args.did > 0):
+        if (args.did):
             if (pygop.setBulbLevelByDid(args.did, 0, args.level)):
                 logLevel(args.did, args.level)
-        elif (args.rid > 0):
+        elif (args.rid):
             if (pygop.setRoomLevelByRid(args.rid, 0, args.level)):
                 logLevel(args.rid, args.level)
         elif (args.name):
