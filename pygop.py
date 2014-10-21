@@ -141,7 +141,7 @@ class pygop(object):
     def identifyRoomByRid(self, rid):
         'Identifies a room by dimming the bulbs in it. [rid]'
 
-        result = self.__identify(self.identifyRoomByRid, rid)
+        result = self.__identify(self.setRoomLevelByRid, rid)
         if(result is False):
             print 'Failed to identifyRoomByRid'
             return False
@@ -151,7 +151,7 @@ class pygop(object):
     def identifyRoomByName(self, name):
         'Identifies a room by dimming the bulbs in it. [name]'
 
-        result = self.__identify(self.identifyRoomByName, name)
+        result = self.__identify(self.setRoomLevelByName, name)
         if(result is False):
             print 'Failed to identifyRoomByName'
             return False

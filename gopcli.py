@@ -72,10 +72,10 @@ if (args.identify):
         if (pygop.identifyBulbByName(args.name)):
             logIdentify(args.name)
     elif (args.rid):
-        if (pygop.identifyBulbByRid(args.rid)):
+        if (pygop.identifyRoomByRid(args.rid)):
             logIdentify(args.rid)
     elif (args.rname):
-        if (pygop.identifyBulbByRname(args.rname)):
+        if (pygop.identifyRoomByName(args.rname)):
             logIdentify(args.rname)
     else:
         parser.error('Name or did required to identify bulb/fixture')
