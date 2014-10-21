@@ -79,7 +79,7 @@ if (args.identify):
             logIdentify(args.rname)
     else:
         parser.error('Name or did required to identify bulb/fixture')
-elif (args.onoff):
+elif (args.onoff is not None):
     if (args.onoff < 0 or args.onoff > 1):
         parser.error("Set value out of bounds (0 or 1)")
     else:
@@ -97,7 +97,7 @@ elif (args.onoff):
                 logOnOff(args.rname, args.onoff)
         else:
             parser.error('Name or did required to set bulb/fixture on or off.')
-elif (args.level):
+elif (args.level is not None):
     if(args.level < 1 or args.level > 100):
         parser.error("Dim level out of bounds (1-100)")
     else:
