@@ -63,8 +63,7 @@ pygop = pygop.pygop(args.gatewayName)
 
 if (args.printInfo):
     pygop.printHouseInfo()
-
-if (args.identify):
+elif (args.identify):
     if (args.did is not None):
         if (pygop.identifyBulbByDid(args.did)):
             logIdentify(args.did)
