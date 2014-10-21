@@ -65,15 +65,15 @@ if (args.printInfo):
     pygop.printHouseInfo()
 
 if (args.identify):
-    if (args.did):
+    if (args.did is not None):
         if (pygop.identifyBulbByDid(args.did)):
             logIdentify(args.did)
+    elif (args.rid is not None):
+        if (pygop.identifyRoomByRid(args.rid)):
+            logIdentify(args.rid)
     elif (args.name):
         if (pygop.identifyBulbByName(args.name)):
             logIdentify(args.name)
-    elif (args.rid):
-        if (pygop.identifyRoomByRid(args.rid)):
-            logIdentify(args.rid)
     elif (args.rname):
         if (pygop.identifyRoomByName(args.rname)):
             logIdentify(args.rname)
@@ -83,10 +83,10 @@ elif (args.onoff):
     if (args.onoff < 0 or args.onoff > 1):
         parser.error("Set value out of bounds (0 or 1)")
     else:
-        if (args.did):
+        if (args.did is not None):
             if (pygop.setBulbLevelByDid(args.did, args.onoff)):
                 logOnOff(args.did, args.onoff)
-        elif (args.rid):
+        elif (args.rid is not None):
             if (pygop.setRoomLevelByRid(args.rid, args.onoff)):
                 logOnOff(args.rid, args.onoff)
         elif (args.name):
@@ -101,10 +101,10 @@ elif (args.level):
     if(args.level < 1 or args.level > 100):
         parser.error("Dim level out of bounds (1-100)")
     else:
-        if (args.did):
+        if (args.did is not None):
             if (pygop.setBulbLevelByDid(args.did, 0, args.level)):
                 logLevel(args.did, args.level)
-        elif (args.rid):
+        elif (args.rid is not None):
             if (pygop.setRoomLevelByRid(args.rid, 0, args.level)):
                 logLevel(args.rid, args.level)
         elif (args.name):

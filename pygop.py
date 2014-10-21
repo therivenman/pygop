@@ -216,6 +216,9 @@ class pygop(object):
             return result
 
     def __scanRooms(self, output):
+
+        print "scan"
+
         command = 'RoomGetCarousel'
         data = '<gip><version>1</version><token>' + self.token + '</token><fields>name,power,product,class,image,imageurl,control</fields></gip>'
 
