@@ -44,9 +44,9 @@ action_group.add_argument("-l", "--level", action="store", type=int, dest="level
 
 identifier_group = parser.add_mutually_exclusive_group()
 identifier_group.add_argument("-d", "--did", action="store", type=int, dest="did",
-            help="Specify the did (device identifier)", default=-1)
+            help="Specify the did (device identifier)", default=None)
 identifier_group.add_argument("-r", "--rid", action="store", type=int, dest="rid",
-            help="Specify the rid (room identifier)", default=-1)
+            help="Specify the rid (room identifier)", default=None)
 identifier_group.add_argument("-n", "--name", action="store", type=str, dest="name",
             help="Specify the name of the bulb/fixture", default=None)
 identifier_group.add_argument("-m", "--rname", action="store", type=str, dest="rname",
