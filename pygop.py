@@ -1,11 +1,12 @@
-from socket import gethostbyname
+import shelve
+from socket import gethostbyname, gaierror
 import sys
-from time import sleep
 import urllib, urllib2
 import xml.etree.ElementTree as ET
 
 __version__ = "0.0.1"
 
+cache_filename = "pygop.cache"
 possibleGatewayDomains = ["lighting", "lighting.local"]
 GOPReturnCodes = {  '200': 'Command Succesful',
                     '404': 'Invalid Command',
@@ -13,47 +14,65 @@ GOPReturnCodes = {  '200': 'Command Succesful',
 
 class pygop(object):
     def __init__(self, gatewayName=None):
-        self.deviceList = {}
-        self.roomList = {}
-        self.token = 0
-        self.gatewayName = None
 
-        result = self.__discoverGateway(gatewayName)
+        self.gatewayName = self.__discoverGateway(gatewayName)
+        if not self.gatewayName:
+            sys.exit("Couldn't detect the gateway.")
 
-        if (result is False):
-            sys.exit('Unable to identify gateway.  Exiting')
+        self.token = self.__login()
+        if not self.token:
+            sys.exit("Couldn't login to the gateway.")
 
-        # connect to the gateway and get initial token
-
-        command = 'GWRLogin'
-        data = '<gip><version>1</version><email>admin</email><password>admin</password></gip>'
-
-        result = self.__sendGopCommand(command, data)
-
-        if (result is False):
-            sys.exit('Failed to get XML response.  Exiting')
-
-        self.token = self.__getXMLTagValue(result, 'token')
-        if (self.token is None):
-            sys.exit('Unable to get token.  Exiting')
+        self.carousel = self.__scanRooms()
+        if not self.carousel:
+            sys.exit("Couldn't enumerate rooms or devices")
 
     # API Functions
 
     def printHouseInfo(self):
         'Gets data for all rooms and prints it to the screen'
-        self.__scanRooms(True)
+        self.carousel = self.__scanRooms(invalidate=True)
+        for room in self.carousel["rooms"]:
+            print 'Room: %s' % room["name"]
+            print ' Rid: %s' % room["rid"]
+            print ""
+
+            for device in room["devices"]:
+                if device["type"] == "LED:":
+                    print "  Type: LED Bulb"
+                elif device["type"] == "CFL:":
+                    print "  Type: CFL Bulb"
+                elif device["type"] == "Light Fixture":
+                    print "  Light Fixture:"
+                else:
+                    print "  Unknown Device Type:"
+
+                print "   Name: %s" % device["name"]
+
+                print "    Did: %s" % device["did"]
+
+                print "  State: %s" % ("On" if device["state"] == "1" else "Off")
+
+                if (device["offline"]):
+                    print "   (Offline)"
+
+                if (device["level"]):
+                    print "  Level: %s" % device["level"]
+
+                print ""
 
     # Set Level APIs
 
     def setBulbLevelByDid(self, did, onoff, level=0):
+
         'Sets the bulb on/off or dim level. [did, (1 - on, 0 off), dim level (1-100)]\n' \
         'Note: To set the bulb on or off, the level parameter must be 0.'
         command = 'DeviceSendCommand'
 
         if (level == 0):
-            data = '<gip><version>1</version><token>%s</token><did>%s</did><value>%d</value></gip>' % (self.token, did, onoff)
+            data = '<gip><version>1</version><token>%s</token><did>%d</did><value>%d</value></gip>' % (self.token, did, onoff)
         else:
-            data = '<gip><version>1</version><token>%s</token><did>%s</did><type>level</type><value>%d</value></gip>' % (self.token, did, level)
+            data = '<gip><version>1</version><token>%s</token><did>%d</did><type>level</type><value>%d</value></gip>' % (self.token, did, level)
 
         result = self.__sendGopCommand(command, data)
 
@@ -164,6 +183,7 @@ class pygop(object):
 
         # turn the target on
         result = action(identifier, 1)
+
         if(result is False):
             print 'Failed to identify %s' % identifier
             return False
@@ -178,7 +198,8 @@ class pygop(object):
         return True
 
     def __sendGopCommand(self, command, data):
-        url = 'http://' + self.gatewayName + '/gwr/gop.php'
+        url = 'http://%s/gwr/gop.php' % self.gatewayName
+
         headers = { 'Host' : self.gatewayName,
                     'Content-Type': 'application/x-www-form-urlencoded'}
 
@@ -201,7 +222,6 @@ class pygop(object):
             elif hasattr(e, 'code'):
                 print 'The server couldn\'t fulfill the request.'
                 print 'Error code: ', e.code
-
             return False
         else:
             result = response.read()
@@ -215,62 +235,59 @@ class pygop(object):
 
             return result
 
-    def __scanRooms(self, output):
-        command = 'RoomGetCarousel'
-        data = '<gip><version>1</version><token>' + self.token + '</token><fields>name,power,product,class,image,imageurl,control</fields></gip>'
+    def __scanRooms(self, invalidate=False):
+        try:
+            carousel = self.__readCache("carousel", invalidate)
+            return carousel
+        except:
+            command = 'RoomGetCarousel'
+            data = '<gip><version>1</version><token>' + self.token + '</token><fields>name,power,product,class,image,imageurl,control</fields></gip>'
+            result = self.__sendGopCommand(command, data)
 
-        result = self.__sendGopCommand(command, data)
+            if result:
+                carousel = { "rooms" : [] }
 
-        tree = ET.fromstring(result)
-        for room in tree.findall('room'):
-            self.roomList[room.find('name').text] = room.find('rid').text
-            if (output):
-                print 'Room: ' + room.find('name').text
-                print ' Rid: ' + room.find('rid').text
-            for device in room.findall('device'):
-                self.deviceList[device.find('name').text] = device.find('did').text
-                if (output):
-                    if (device.find('prodtype').text == "Light Fixture"):
-                        print '     Light Fixture:'
-                    elif (device.find('prodtype').text == "LED"):
-                        print '     LED Bulb:'
-                    elif (device.find('prodtype').text == "CFL"):
-                        print '     CFL Bulb:'
-                    else:
-                        print '     Unknown Device Type:'
+                tree = ET.fromstring(result)
+                for room in tree.findall('room'):
+                    roomid = room.find('rid').text
+                    roomname = room.find('name').text
+                    current_room = { "name" :  roomname, "rid" : roomid, "devices" : [] }
 
-                    print '     Name: ' + device.find('name').text
+                    for device in room.findall('device'):
+                        deviceid = device.find('did').text
+                        devicename = device.find('name').text
+                        devicetype = device.find('prodtype').text
+                        devicestate = device.find('state').text
+                        deviceoffline =  True if device.find('offline') is not None else False
+                        devicelevel = None if device.find('level') is None else device.find('level').text
 
-                    print '      Did: ' + device.find('did').text
+                        current_room["devices"].append({ "name"   : devicename, 
+                                                         "did"    : deviceid , 
+                                                         "type"   : devicetype, 
+                                                         "state"  : devicestate, 
+                                                         "offline" : deviceoffline, 
+                                                         "level"  : devicelevel })
 
-                    if (device.find('state').text == '1'):
-                        print '    State: On'
-                    else:
-                        print '    State: Off'
+                carousel["rooms"].append(current_room)
+                self.__writeCache("carousel", carousel)                
+                return carousel
 
-                    if (device.find('offline') is not None):
-                        print '     (Offline)'
-                    else:
-                        print '    Level: ' +  device.find('level').text
-                    print ''
+        return None
 
     def __nameToDid(self, name):
-        #first do a scan to populate database
-        if(self.deviceList == {}):
-            self.__scanRooms(False)
+        for room in self.carousel["rooms"]:
+            for device in room["devices"]:
+                if device["name"].lower() == name.lower():
+                    return device["did"]
 
-        did = self.deviceList.get(name)
-
-        return did
+        return None
 
     def __nameToRid(self, name):
-        #first do a scan to populate database
-        if (self.roomList == {}):
-            self.__scanRooms(False)
+        for room in self.carousel["rooms"]:
+            if room["name"].lower() == name.lower():
+                return room["rid"]
 
-        rid = self.roomList.get(name)
-
-        return rid
+        return None
 
     def __getXMLTagValue(self, xml, tag):
         tree = ET.fromstring(xml)
@@ -282,16 +299,64 @@ class pygop(object):
             return None
 
     def __discoverGateway(self, domain=None):
-        # Validates existance of gateway.
-        if domain:
-            possibleGatewayDomains.insert(0, domain)
+        try:
+            name = self.__readCache("domain")
+            gethostbyname(name)
+            return name
 
-        for name in possibleGatewayDomains:
-            try:
-                gethostbyname(name)
-                self.gatewayName = name
-                return True
-            except:
-                pass
+        except:
+            if domain:
+                possibleGatewayDomains.insert(0, domain)
 
-        return False
+            for name in possibleGatewayDomains:
+                try:
+                    gethostbyname(name)
+                    self.__writeCache("domain", name)
+                    return name
+
+                except:
+                    pass
+
+        return None
+
+    def __login(self, username="admin", password="admin"):
+        try:
+            token = self.__readCache("token")
+            return token
+
+        except:
+            command = 'GWRLogin'
+            data = '<gip><version>1</version><email>%s</email><password>%s</password></gip>' % (username, password)
+            result = self.__sendGopCommand(command, data)
+
+            if result:
+                token = self.__getXMLTagValue(result, 'token')
+                self.__writeCache("token", token)
+                return token
+
+        return None
+
+    def __readCache(self, key, invalidate=False):
+        if invalidate:
+            # This is based on the assumption that we will
+            # write to the cache if it does not contain
+            # the key we were looking for. The exception
+            # will be handled in the calling function
+            # which will query the gateway for data
+            # and then write it to the cache afterwards
+            raise KeyError
+
+        try:
+            s = shelve.open(cache_filename)
+            value = s[key]
+        finally:
+            s.close()
+
+        return value
+ 
+    def __writeCache(self, key, value):
+        try:
+            s = shelve.open(cache_filename, writeback=True)
+            s[key] = value
+        finally:
+            s.close()
