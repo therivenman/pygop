@@ -3,6 +3,9 @@ pygop
 
 A python module to interface with the GOP service from Greenwave Reality.
 
+## NOTE: 
+  An update pushed to Greenwave/TCP Connected gateway devices in early 2015 has broken compatibility with 3rd party libraries. This library will not work with devices running firmware **3.0.74** or newer.
+
 ### New Features
 - Blink mode to identify bulbs and rooms
 - Added support for custom domains and .local prefix
