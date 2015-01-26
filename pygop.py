@@ -3,11 +3,10 @@ from socket import gethostbyname, gaierror
 import sys
 import urllib, urllib2
 import xml.etree.ElementTree as ET
+import settings
 
-__version__ = "0.0.1"
-
+__version__ = "0.0.2"
 cache_filename = "pygop.cache"
-possibleGatewayDomains = ["lighting", "lighting.local"]
 GOPReturnCodes = {  '200': 'Command Succesful',
                     '404': 'Invalid Command',
                     '500': 'Incorrect Did/Rid'}
@@ -15,11 +14,10 @@ GOPReturnCodes = {  '200': 'Command Succesful',
 class pygop(object):
     def __init__(self, gatewayName=None):
 
-        self.gatewayName = self.__discoverGateway(gatewayName)
-        if not self.gatewayName:
-            sys.exit("Couldn't detect the gateway.")
+        self.gatewayIP = settings.GATEWAY_IP
 
         self.token = self.__login()
+        
         if not self.token:
             sys.exit("Couldn't login to the gateway.")
 
@@ -198,9 +196,9 @@ class pygop(object):
         return True
 
     def __sendGopCommand(self, command, data):
-        url = 'http://%s/gwr/gop.php' % self.gatewayName
+        url = 'https://%s/gwr/gop.php' % self.gatewayIP
 
-        headers = { 'Host' : self.gatewayName,
+        headers = { 'Host' : self.gatewayIP,
                     'Content-Type': 'application/x-www-form-urlencoded'}
 
         values = {'cmd' : command,
@@ -297,27 +295,6 @@ class pygop(object):
             return value.text
         else:
             return None
-
-    def __discoverGateway(self, domain=None):
-        try:
-            name = self.__readCache("domain")
-            gethostbyname(name)
-            return name
-
-        except:
-            if domain:
-                possibleGatewayDomains.insert(0, domain)
-
-            for name in possibleGatewayDomains:
-                try:
-                    gethostbyname(name)
-                    self.__writeCache("domain", name)
-                    return name
-
-                except:
-                    pass
-
-        return None
 
     def __login(self, username="admin", password="admin"):
         try:

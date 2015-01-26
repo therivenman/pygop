@@ -30,8 +30,6 @@ parser.add_argument("-q", "--quiet", action="store_true", default=False,
             dest="quiet", help="Surpress program output")
 parser.add_argument("-p", "--print-info", action="store_true", default=False,
             dest="printInfo", help="Print rooms and devices to the console")
-parser.add_argument("-g", "--gatewayName", action="store", default=None,
-            dest="gatewayName", help="Override the gateway's domain name")
 
 action_group = parser.add_mutually_exclusive_group()
 action_group.add_argument("-s", "--set", action="store", type=int, dest="onoff", 
@@ -59,7 +57,7 @@ if (len(sys.argv) < 2):
      parser.print_help()
      sys.exit()
 
-pygop = pygop.pygop(args.gatewayName)
+pygop = pygop.pygop()
 
 if (args.printInfo):
     pygop.printHouseInfo()
