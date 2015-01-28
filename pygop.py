@@ -1,6 +1,6 @@
 import shelve
-from socket import gethostbyname, gaierror
 import sys
+import uuid
 import urllib, urllib2
 import xml.etree.ElementTree as ET
 try:
@@ -11,6 +11,7 @@ except:
 __version__ = "0.0.2"
 cache_filename = "pygop.cache"
 GOPReturnCodes = {  '200': 'Command Succesful',
+                    '401': 'Invalid Token',
                     '404': 'Invalid Command',
                     '500': 'Incorrect Did/Rid'}
 
@@ -20,7 +21,7 @@ class pygop(object):
         self.gatewayIP = settings.GATEWAY_IP
 
         self.token = self.__login()
-        
+
         if not self.token:
             sys.exit("Couldn't login to the gateway.")
 
@@ -33,6 +34,10 @@ class pygop(object):
     def printHouseInfo(self):
         'Gets data for all rooms and prints it to the screen'
         self.carousel = self.__scanRooms(invalidate=True)
+        if not self.carousel:
+            print "Couldn't enumerate rooms or devices"
+            return False
+
         for room in self.carousel["rooms"]:
             print 'Room: %s' % room["name"]
             print ' Rid: %s' % room["rid"]
@@ -262,15 +267,15 @@ class pygop(object):
                         deviceoffline =  True if device.find('offline') is not None else False
                         devicelevel = None if device.find('level') is None else device.find('level').text
 
-                        current_room["devices"].append({ "name"   : devicename, 
-                                                         "did"    : deviceid , 
-                                                         "type"   : devicetype, 
-                                                         "state"  : devicestate, 
-                                                         "offline" : deviceoffline, 
+                        current_room["devices"].append({ "name"   : devicename,
+                                                         "did"    : deviceid ,
+                                                         "type"   : devicetype,
+                                                         "state"  : devicestate,
+                                                         "offline" : deviceoffline,
                                                          "level"  : devicelevel })
 
                 carousel["rooms"].append(current_room)
-                self.__writeCache("carousel", carousel)                
+                self.__writeCache("carousel", carousel)
                 return carousel
 
         return None
@@ -299,14 +304,16 @@ class pygop(object):
         else:
             return None
 
-    def __login(self, username="admin", password="admin"):
+    def __login(self):
         try:
             token = self.__readCache("token")
             return token
 
         except:
+            loginuuid = uuid.uuid4()
+
             command = 'GWRLogin'
-            data = '<gip><version>1</version><email>%s</email><password>%s</password></gip>' % (username, password)
+            data = '<gip><version>1</version><email>%s</email><password>%s</password></gip>' % (loginuuid, loginuuid)
             result = self.__sendGopCommand(command, data)
 
             if result:
@@ -333,7 +340,7 @@ class pygop(object):
             s.close()
 
         return value
- 
+
     def __writeCache(self, key, value):
         try:
             s = shelve.open(cache_filename, writeback=True)
