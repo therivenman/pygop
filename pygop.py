@@ -39,14 +39,14 @@ class pygop(object):
             print ""
 
             for device in room["devices"]:
-                if device["type"] == "LED:":
-                    print "  Type: LED Bulb"
-                elif device["type"] == "CFL:":
-                    print "  Type: CFL Bulb"
+                if device["type"] == "LED":
+                    print "   Type: LED Bulb"
+                elif device["type"] == "CFL":
+                    print "   Type: CFL Bulb"
                 elif device["type"] == "Light Fixture":
-                    print "  Light Fixture:"
+                    print "   Type: Light Fixture"
                 else:
-                    print "  Unknown Device Type:"
+                    print "   Type: Unknown"
 
                 print "   Name: %s" % device["name"]
 
