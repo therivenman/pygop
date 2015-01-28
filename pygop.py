@@ -1,5 +1,6 @@
 import shelve
 import sys
+import ssl
 import uuid
 import urllib, urllib2
 import xml.etree.ElementTree as ET
@@ -7,6 +8,10 @@ try:
 	import settings
 except:
 	sys.exit("Couldn't load settings.py file, check the README.")
+
+# disable ssl cert validation for python versions >= 2.7.9
+if hasattr(ssl, '_create_unverified_context'):
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 __version__ = "0.0.2"
 cache_filename = "pygop.cache"
