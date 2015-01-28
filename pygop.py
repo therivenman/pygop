@@ -28,7 +28,7 @@ class pygop(object):
         self.token = self.__login()
 
         if not self.token:
-            sys.exit("Couldn't login to the gateway.")
+            sys.exit("Invalid token. Couldn't login to the gateway.\nHas the sync button on the gateway been activated?")
 
         self.carousel = self.__scanRooms()
         if not self.carousel:
