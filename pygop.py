@@ -3,7 +3,10 @@ from socket import gethostbyname, gaierror
 import sys
 import urllib, urllib2
 import xml.etree.ElementTree as ET
-import settings
+try:
+	import settings
+except:
+	sys.exit("Couldn't load settings.py file, check the README.")
 
 __version__ = "0.0.2"
 cache_filename = "pygop.cache"
