@@ -1,7 +1,11 @@
 #!/usr/bin/env python
+import sys
+
+if sys.version_info[0] != 2 or sys.version_info[1] < 7:
+    sys.exit("This script requires Python version 2.7")
+
 import pygop
 from argparse import ArgumentParser
-import sys
 
 def logOnOff(name, onoff):
     if (args.quiet is False):
@@ -20,7 +24,7 @@ def logIdentify(name):
 
 # set up parser and args
 # %prog variable doesn't work with the parser in usage for some reason
-usage = "%s [-p]" % sys.argv[0] 
+usage = "%s [-p]" % sys.argv[0]
 description = "Command Line Utility for the pygop module"
 version = "%s %s" % (sys.argv[0], pygop.__version__)
 parser = ArgumentParser(usage=usage, description=description)
@@ -32,11 +36,11 @@ parser.add_argument("-p", "--print-info", action="store_true", default=False,
             dest="printInfo", help="Print rooms and devices to the console")
 
 action_group = parser.add_mutually_exclusive_group()
-action_group.add_argument("-s", "--set", action="store", type=int, dest="onoff", 
+action_group.add_argument("-s", "--set", action="store", type=int, dest="onoff",
             help="Set the bulb/fixture on - 1 or off - 0", default=None)
 action_group.add_argument("-l", "--level", action="store", type=int, dest="level",
             help="Set the dim level of the bulb/fixture (1-100)", default=None)
-action_group.add_argument("-i", "--identify", action="store_true", default=False, dest="identify", 
+action_group.add_argument("-i", "--identify", action="store_true", default=False, dest="identify",
             help="Identifies a room or bulb ID or name")
 
 identifier_group = parser.add_mutually_exclusive_group()
