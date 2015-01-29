@@ -1,13 +1,11 @@
+import re
 import shelve
+import socket
 import sys
 import ssl
 import uuid
 import urllib, urllib2
 import xml.etree.ElementTree as ET
-try:
-	import settings
-except:
-	sys.exit("Couldn't load settings.py file, check the README.")
 
 # disable ssl cert validation for python versions >= 2.7.9
 if hasattr(ssl, '_create_unverified_context'):
@@ -21,12 +19,13 @@ GOPReturnCodes = {  '200': 'Command Succesful',
                     '500': 'Incorrect Did/Rid'}
 
 class pygop(object):
-    def __init__(self, gatewayName=None):
+    def __init__(self):
 
-        self.gatewayIP = settings.GATEWAY_IP
+        self.gatewayIP = self.__discoverGateway()
+        if not self.gatewayIP:
+            sys.exit("Couldn't detect gateway on the network.")
 
         self.token = self.__login()
-
         if not self.token:
             sys.exit("Invalid token. Couldn't login to the gateway.\nHas the sync button on the gateway been activated?")
 
@@ -308,6 +307,40 @@ class pygop(object):
             return value.text
         else:
             return None
+
+    def __discoverGateway(self, invalidate=False):
+
+        try:
+            gatewayIP = self.__readCache("gatewayIP", invalidate)
+            return gatewayIP
+        except:
+            SSDP_ADDR = "239.255.255.250";
+            SSDP_PORT = 1900;
+            SSDP_MX = 1;
+            SSDP_ST = "urn:greenwavereality-com:service:gop:1";
+
+            ssdpRequest = "M-SEARCH * HTTP/1.1\r\n" + \
+                            "HOST: %s:%d\r\n" % (SSDP_ADDR, SSDP_PORT) + \
+                            "MAN: \"ssdp:discover\"\r\n" + \
+                            "MX: %d\r\n" % (SSDP_MX, ) + \
+                            "ST: %s\r\n" % (SSDP_ST, ) + "\r\n";
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.settimeout(2) # 2 second timeout
+
+            try:
+                sock.sendto(ssdpRequest, (SSDP_ADDR, SSDP_PORT))
+                result = sock.recv(1000)
+                sock.close()
+
+                location = re.findall(r"(LOCATION): https://(?P<host>.*?)\r\n", result)
+
+                if len(location) and len(location[0]):
+                    gatewayIP = location[0][1]
+                    self.__writeCache("gatewayIP", gatewayIP)
+                    return gatewayIP
+            except:
+                return None
 
     def __login(self):
         try:
