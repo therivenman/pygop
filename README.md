@@ -5,12 +5,6 @@ A python module to interface with the GOP service from Greenwave Reality.
 
 ## Instructions
 
-0. Create settings.py and add the following (using your own gateway's IP address)
-
-```python
-GATEWAY_IP = "192.168.1.100"
-```
-
 1. Press the sync button on the gateway. It will begin to flash.
 2. Run 'gopcli.py -p' to generate token and to do an initial scan of your bulb network
 3. If this succeeds, script away! 
