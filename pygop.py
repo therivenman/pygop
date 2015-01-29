@@ -3,6 +3,7 @@ import shelve
 import socket
 import sys
 import ssl
+import os
 import uuid
 import urllib, urllib2
 import xml.etree.ElementTree as ET
@@ -13,6 +14,7 @@ if hasattr(ssl, '_create_unverified_context'):
 
 __version__ = "0.0.2"
 cache_filename = "pygop.cache"
+cache_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), cache_filename)
 GOPReturnCodes = {  '200': 'Command Succesful',
                     '401': 'Invalid Token',
                     '404': 'Invalid Command',
@@ -27,7 +29,7 @@ class pygop(object):
 
         self.token = self.__login()
         if not self.token:
-            sys.exit("Invalid token. Couldn't login to the gateway.\nHas the sync button on the gateway been activated?")
+            sys.exit("Couldn't login to the gateway.\nHas the sync button on the gateway been activated?")
 
         self.carousel = self.__scanRooms()
         if not self.carousel:
@@ -372,7 +374,7 @@ class pygop(object):
             raise KeyError
 
         try:
-            s = shelve.open(cache_filename)
+            s = shelve.open(cache_location)
             value = s[key]
         finally:
             s.close()
@@ -381,7 +383,7 @@ class pygop(object):
 
     def __writeCache(self, key, value):
         try:
-            s = shelve.open(cache_filename, writeback=True)
+            s = shelve.open(cache_location, writeback=True)
             s[key] = value
         finally:
             s.close()

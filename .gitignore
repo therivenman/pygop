@@ -1,3 +1,4 @@
 *.pyc
 *.cache
-settings.py
+*.cache.db
+
