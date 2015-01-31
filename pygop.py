@@ -280,7 +280,7 @@ class pygop(object):
                                                          "offline" : deviceoffline,
                                                          "level"  : devicelevel })
 
-                carousel["rooms"].append(current_room)
+                    carousel["rooms"].append(current_room)
                 self.__writeCache("carousel", carousel)
                 return carousel
 
