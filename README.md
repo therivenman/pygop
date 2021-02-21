@@ -19,6 +19,7 @@ A python module to interface with the GOP service from Greenwave Reality.
 - Set room on/off and dim level by rid or room name
 - Robust error checking and easy to read error messages
 - Command line utility to access all API features
+- Specify cache location with `PYGOP_CACHE_LOCATION` environment variable
 
 ### Future Features and Work
 
@@ -38,4 +39,3 @@ A python module to interface with the GOP service from Greenwave Reality.
 Greenwave/TCP updated firmware and removed HTTP service. This is a minor change to re-integrate pygop with greenwave's update.
 
 - Added basic support for firmware version 3.0.74 (HTTPS-only), requires manual identification of gateway IP (GWR disabled domain service)
-- Added settings page to hold custom configuration details such as gateway IPs; it should not be committed to the repo

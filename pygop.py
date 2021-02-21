@@ -14,7 +14,11 @@ if hasattr(ssl, '_create_unverified_context'):
 
 __version__ = "0.0.2"
 cache_filename = "pygop.cache"
-cache_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), cache_filename)
+cache_directory = os.getenv("PYGOP_CACHE_LOCATION")
+if cache_directory is not None:
+    cache_location = os.path.join(os.path.dirname(cache_directory), cache_filename)
+else:
+    cache_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), cache_filename)
 GOPReturnCodes = {  '200': 'Command Succesful',
                     '401': 'Invalid Token',
                     '404': 'Invalid Command',
