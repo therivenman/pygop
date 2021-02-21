@@ -24,7 +24,7 @@ def logIdentify(name):
 
 # set up parser and args
 # %prog variable doesn't work with the parser in usage for some reason
-usage = "%s [-p]" % sys.argv[0]
+usage = "%s [-hvqp] [-s 0/1] [-l 1-100] [-i] [-d did] [-r rid] [-n bulb_name] [-m room_name]" % sys.argv[0]
 description = "Command Line Utility for the pygop module"
 version = "%s %s" % (sys.argv[0], pygop.__version__)
 parser = ArgumentParser(usage=usage, description=description)

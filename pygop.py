@@ -82,9 +82,9 @@ class pygop(object):
         command = 'DeviceSendCommand'
 
         if (level == 0):
-            data = '<gip><version>1</version><token>%s</token><did>%d</did><value>%d</value></gip>' % (self.token, did, onoff)
+            data = '<gip><version>1</version><token>%s</token><did>%s</did><value>%d</value></gip>' % (self.token, did, onoff)
         else:
-            data = '<gip><version>1</version><token>%s</token><did>%d</did><type>level</type><value>%d</value></gip>' % (self.token, did, level)
+            data = '<gip><version>1</version><token>%s</token><did>%s</did><type>level</type><value>%d</value></gip>' % (self.token, did, level)
 
         result = self.__sendGopCommand(command, data)
 
