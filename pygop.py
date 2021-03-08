@@ -77,6 +77,9 @@ class pygop(object):
 
                 print ""
 
+    def getCarousel(self):
+        return self.carousel
+
     # Set Level APIs
 
     def setBulbLevelByDid(self, did, onoff, level=0):
